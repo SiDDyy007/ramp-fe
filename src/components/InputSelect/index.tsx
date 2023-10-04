@@ -1,5 +1,5 @@
 import Downshift from "downshift"
-import { useCallback, useState } from "react"
+import { useEffect, useRef, useCallback, useState } from "react"
 import classNames from "classnames"
 import { DropdownPosition, GetDropdownPositionFn, InputSelectOnChange, InputSelectProps } from "./types"
 
@@ -30,6 +30,26 @@ export function InputSelect<TItem>({
     [consumerOnChange]
   )
 
+  // Add a ref to the input container
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Update the dropdown position when the page is scrolled
+      if (inputRef.current) {
+        setDropdownPosition(getDropdownPosition(inputRef.current));
+      }
+    };
+
+    // Attach the scroll event listener
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup: remove the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
     <Downshift<TItem>
       id="RampSelect"
@@ -51,7 +71,7 @@ export function InputSelect<TItem>({
         const parsedSelectedItem = selectedItem === null ? null : parseItem(selectedItem)
 
         return (
-          <div className="RampInputSelect--root">
+          <div className="RampInputSelect--root" ref={inputRef}>
             <label className="RampText--s RampText--hushed" {...getLabelProps()}>
               {label}
             </label>
